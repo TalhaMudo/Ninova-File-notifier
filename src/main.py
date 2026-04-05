@@ -43,6 +43,7 @@ async def run() -> None:
     )
 
     previous = load_snapshot(settings.state_file_path, logger)
+    first_run = previous is None
     new_files = find_new_files(previous, current)
     grade_changes = find_grade_changes(previous, current)
 
@@ -72,6 +73,22 @@ async def run() -> None:
             logger.info("Bark is not configured, skipping grade notification")
     else:
         logger.info("No grade changes detected")
+
+    if settings.bark_device_key and first_run and settings.notify_on_first_run:
+        await send_bark_notification(
+            settings,
+            "Ninova monitor initialized",
+            f"Baseline created: {len(files)} files, {len(grades)} grades",
+            logger,
+        )
+
+    if settings.bark_device_key and not new_files and not grade_changes and settings.notify_on_no_updates:
+        await send_bark_notification(
+            settings,
+            "Ninova",
+            "No new update found",
+            logger,
+        )
 
     save_snapshot(current, settings.state_file_path, logger)
     logger.info("Done")
