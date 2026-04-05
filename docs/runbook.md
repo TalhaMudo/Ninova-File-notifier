@@ -57,12 +57,13 @@ The workflow triggers via `workflow_dispatch`. You can trigger it from:
 - **Cause**: Bark device key may be wrong or Bark server unreachable.
 - **Fix**: Test Bark directly: `curl https://api.day.app/YOUR_KEY/test`
 
-### Snapshot artifact missing
+### Snapshot cache missing
 
 - **Symptoms**: Every run reports "No previous snapshot found (first run?)"
-- **Cause**: Artifacts expire after 90 days, or the artifact name changed.
-- **Fix**: This is normal for the first run. If persistent, check the
-  `upload-artifact` / `download-artifact` step names match.
+- **Cause**: Cache not restored yet (first run), cache was evicted, or cache key prefix changed.
+- **Fix**: First run behavior is expected. On later runs, ensure workflow has
+  `actions/cache/restore` and `actions/cache/save` steps using the same
+  `restore-keys` prefix (`ninova-snapshot-`).
 
 ## Debug mode
 

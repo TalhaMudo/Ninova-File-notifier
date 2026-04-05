@@ -43,9 +43,12 @@ python -m src.main
    - `NINOVA_USERNAME`
    - `NINOVA_PASSWORD`
    - `BARK_DEVICE_KEY`
-   - `BARK_BASE_URL`
+   - `BARK_ICON_URL` (optional, e.g. `https://day.app/assets/images/avatar.jpg`)
 
-2. Trigger manually from the Actions tab, or set up an Apple Shortcut
+2. Optional: if you use a self-hosted Bark server, edit
+   `.github/workflows/notify.yml` and change `BARK_BASE_URL`.
+
+3. Trigger manually from the Actions tab, or set up an Apple Shortcut
    (see [docs/apple-shortcut-trigger.md](docs/apple-shortcut-trigger.md)).
 
 ## Project structure

@@ -5,7 +5,7 @@ File Notifier workflow via the GitHub Actions API.
 
 ## Prerequisites
 
-1. A **GitHub Personal Access Token (PAT)** with `repo` and `actions` scopes.
+1. A **GitHub Personal Access Token (PAT)** with permission to run workflows.
    - Go to https://github.com/settings/tokens → Generate new token (classic).
    - Select scopes: `repo`, `workflow`.
    - Copy the token immediately — you won't see it again.
@@ -84,3 +84,12 @@ curl -X POST \
 
 A `204 No Content` response means the workflow was triggered successfully.
 Check the Actions tab in your repository to see the run.
+
+## Required GitHub repository secrets
+
+Before using the shortcut, add these repository secrets:
+
+- `NINOVA_USERNAME`
+- `NINOVA_PASSWORD`
+- `BARK_DEVICE_KEY`
+- `BARK_ICON_URL` (optional)
