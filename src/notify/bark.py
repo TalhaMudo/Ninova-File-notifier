@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from urllib.parse import quote
 
 import httpx
 
@@ -13,19 +14,22 @@ async def send_bark_notification(
     body: str,
     logger: logging.Logger,
 ) -> None:
-    """Send a push notification via the Bark API.
+    """Send a push notification via Bark path format.
 
-    Bark endpoint format: POST {base_url}/{device_key}
-    JSON payload: {"title": ..., "body": ..., "group": ..., "sound": ...}
+    Format:
+      GET {base_url}/{device_key}/{title}/{body}?icon={icon_url}
     """
-    url = f"{settings.bark_base_url}/{settings.bark_device_key}"
-    payload = {
-        "title": title,
-        "body": body,
-        "group": "Ninova",
-        "sound": "minuet",
-        "isArchive": 1,
-    }
+    if not settings.bark_device_key:
+        logger.info("Bark device key is missing, skipping notification")
+        return
+
+    encoded_title = quote(title, safe="")
+    encoded_body = quote(body, safe="")
+    base = settings.bark_base_url.rstrip("/")
+    url = f"{base}/{settings.bark_device_key}/{encoded_title}/{encoded_body}"
+    params: dict[str, str] = {}
+    if settings.bark_icon_url:
+        params["icon"] = settings.bark_icon_url
 
     logger.info("Sending Bark notification: %s", title)
 
@@ -33,7 +37,7 @@ async def send_bark_notification(
     for attempt in range(1, settings.max_retries + 1):
         try:
             async with httpx.AsyncClient(timeout=10) as client:
-                resp = await client.post(url, json=payload)
+                resp = await client.get(url, params=params)
                 resp.raise_for_status()
             logger.info("Bark notification sent successfully")
             return

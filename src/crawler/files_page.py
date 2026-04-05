@@ -175,15 +175,18 @@ async def _find_files_section_link(page: Page):
 
 
 def _dedupe_files(files: list[FileEntry]) -> list[FileEntry]:
-    seen: set[str] = set()
-    result: list[FileEntry] = []
+    # Prefer URL-level dedupe to collapse folder/root duplicates of same file.
+    # If both "Lecture2" and "LectureSlides/Lecture2" point to same URL, keep the
+    # more informative (longer) name.
+    by_url: dict[str, FileEntry] = {}
     for file_entry in files:
-        key = file_entry.unique_key
-        if key in seen:
+        existing = by_url.get(file_entry.file_url)
+        if existing is None:
+            by_url[file_entry.file_url] = file_entry
             continue
-        seen.add(key)
-        result.append(file_entry)
-    return result
+        if len(file_entry.file_name) > len(existing.file_name):
+            by_url[file_entry.file_url] = file_entry
+    return list(by_url.values())
 
 
 def _normalize_class_href(href: str) -> str | None:

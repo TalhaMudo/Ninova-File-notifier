@@ -81,7 +81,11 @@ async def _find_notes_section_link(page: Page):
 
 async def _extract_grades_from_notes_table(page: Page, class_name: str) -> list[GradeEntry]:
     grades: list[GradeEntry] = []
-    rows = page.locator("table tr")
+    table = await _find_notes_table(page)
+    if table is None:
+        return grades
+
+    rows = table.locator("tr")
     row_count = await rows.count()
     if row_count <= 1:
         return grades
@@ -119,9 +123,15 @@ def _is_noise_grade_row(item: str, value: str) -> bool:
     v = value.lower()
     if i in {"dersler", "yardim", "hakkinda", "ninova"}:
         return True
+    if "dersler" in i and "yard" in i and "hakk" in i:
+        return True
+    if "ninova" in i and "başkanlığı" in i:
+        return True
     if "ağırlık ortalamanız" in i:
         return True
     if v in {"not", "açıklama"}:
+        return True
+    if v in {"dersler", "yardım", "hakkında"}:
         return True
     return False
 
@@ -140,3 +150,22 @@ def _dedupe_grades(grades: list[GradeEntry]) -> list[GradeEntry]:
 
 def _slug(value: str) -> str:
     return "".join(c if c.isalnum() or c in {"_", "-"} else "_" for c in value).strip("_")
+
+
+async def _find_notes_table(page: Page):
+    """Find the table that actually contains grade columns."""
+    tables = page.locator("table")
+    table_count = await tables.count()
+    for i in range(table_count):
+        table = tables.nth(i)
+        headers = table.locator("th")
+        header_count = await headers.count()
+        if header_count == 0:
+            continue
+        header_texts = []
+        for j in range(header_count):
+            header_texts.append((await headers.nth(j).inner_text()).strip().lower())
+        joined = " ".join(header_texts)
+        if "not" in joined and ("açıklama" in joined or "aciklama" in joined):
+            return table
+    return None

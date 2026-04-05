@@ -162,6 +162,12 @@ def _is_noise_navigation_link(name: str, href: str) -> bool:
     h = href.strip().lower()
     if "/tr/dersler" in h:
         return True
+    if "javascript:__dopostback" in h:
+        return True
+    if "?u0" in h:
+        return True
+    if "ana dizin" in n or "üst dizin" in n or "ust dizin" in n:
+        return True
     if n in {"dersler", "yardim", "hakkinda", "ninova"}:
         return True
     return False
