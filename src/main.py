@@ -85,7 +85,7 @@ async def run() -> None:
     if settings.bark_device_key and not new_files and not grade_changes and settings.notify_on_no_updates:
         await send_bark_notification(
             settings,
-            "Ninova",
+            "Monkey",
             "No new update found",
             logger,
         )
