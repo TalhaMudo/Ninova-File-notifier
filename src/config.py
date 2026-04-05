@@ -8,7 +8,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     ninova_username: str
     ninova_password: str
-    bark_device_key: str
+    bark_device_key: str | None = None
     bark_base_url: str = "https://api.day.app"
     ninova_base_url: str = "https://ninova.itu.edu.tr"
     state_file_path: str = "state/latest_snapshot.json"
