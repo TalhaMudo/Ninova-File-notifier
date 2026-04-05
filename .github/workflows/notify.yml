@@ -1,0 +1,73 @@
+name: Ninova File Notifier
+
+on:
+  workflow_dispatch:
+    inputs:
+      debug:
+        description: "Enable debug mode (saves extra artifacts)"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  check-files:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install chromium --with-deps
+
+      - name: Download previous snapshot
+        uses: actions/download-artifact@v4
+        with:
+          name: ninova-snapshot
+          path: state/
+        continue-on-error: true
+
+      - name: Run notifier
+        env:
+          NINOVA_USERNAME: ${{ secrets.NINOVA_USERNAME }}
+          NINOVA_PASSWORD: ${{ secrets.NINOVA_PASSWORD }}
+          BARK_DEVICE_KEY: ${{ secrets.BARK_DEVICE_KEY }}
+          BARK_BASE_URL: ${{ secrets.BARK_BASE_URL }}
+          NINOVA_BASE_URL: "https://ninova.itu.edu.tr"
+          STATE_FILE_PATH: "state/latest_snapshot.json"
+          HEADLESS: "true"
+        run: python -m src.main
+
+      - name: Upload updated snapshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ninova-snapshot
+          path: state/latest_snapshot.json
+          overwrite: true
+          retention-days: 90
+
+      - name: Upload debug artifacts
+        if: ${{ inputs.debug == 'true' || failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-dumps
+          path: debug_dumps/
+          retention-days: 7
+          if-no-files-found: ignore
