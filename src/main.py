@@ -58,7 +58,7 @@ async def run() -> None:
         logger.info("Detected %d new file(s)", len(new_files))
         if settings.bark_device_key:
             for file_entry in new_files:
-                title = file_entry.class_name
+                title = f"📄 {file_entry.class_name}"
                 body = file_entry.file_name
                 await send_bark_notification(settings, title, body, logger)
         else:
@@ -85,7 +85,7 @@ async def run() -> None:
         logger.info("Detected %d new announcement(s)", len(new_announcements))
         if settings.bark_device_key:
             for ann in new_announcements:
-                title = ann.class_name
+                title = f"📢 {ann.class_name}"
                 body = ann.title
                 await send_bark_notification(settings, title, body, logger)
         else:
