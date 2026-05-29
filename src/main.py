@@ -10,8 +10,9 @@ from src.browser.session import new_browser_context
 from src.crawler.login import login
 from src.crawler.files_page import collect_all_files
 from src.crawler.grades_page import collect_all_grades
+from src.crawler.announcements_page import collect_all_announcements
 from src.state.store import load_snapshot, save_snapshot
-from src.state.compare import find_grade_changes, find_new_files
+from src.state.compare import find_grade_changes, find_new_announcements, find_new_files
 from src.notify.bark import send_bark_notification
 from src.models import Snapshot
 
@@ -36,16 +37,22 @@ async def run() -> None:
         grades = await collect_all_grades(page, settings, logger)
         logger.info("Found %d grade row(s) across all classes", len(grades))
 
+        logger.info("Collecting announcements from class Duyurular pages")
+        announcements = await collect_all_announcements(page, settings, logger)
+        logger.info("Found %d announcement(s) across all classes", len(announcements))
+
     current = Snapshot(
         fetched_at=datetime.now(timezone.utc).isoformat(),
         files=files,
         grades=grades,
+        announcements=announcements,
     )
 
     previous = load_snapshot(settings.state_file_path, logger)
     first_run = previous is None
     new_files = find_new_files(previous, current)
     grade_changes = find_grade_changes(previous, current)
+    new_announcements = find_new_announcements(previous, current)
 
     if new_files:
         logger.info("Detected %d new file(s)", len(new_files))
@@ -74,15 +81,27 @@ async def run() -> None:
     else:
         logger.info("No grade changes detected")
 
+    if new_announcements:
+        logger.info("Detected %d new announcement(s)", len(new_announcements))
+        if settings.bark_device_key:
+            for ann in new_announcements:
+                title = ann.class_name
+                body = ann.title
+                await send_bark_notification(settings, title, body, logger)
+        else:
+            logger.info("Bark is not configured, skipping announcement notification")
+    else:
+        logger.info("No new announcements detected")
+
     if settings.bark_device_key and first_run and settings.notify_on_first_run:
         await send_bark_notification(
             settings,
             "Ninova monitor initialized",
-            f"Baseline created: {len(files)} files, {len(grades)} grades",
+            f"Baseline created: {len(files)} files, {len(grades)} grades, {len(announcements)} announcements",
             logger,
         )
 
-    if settings.bark_device_key and not new_files and not grade_changes and settings.notify_on_no_updates:
+    if settings.bark_device_key and not new_files and not grade_changes and not new_announcements and settings.notify_on_no_updates:
         await send_bark_notification(
             settings,
             "Monkey",

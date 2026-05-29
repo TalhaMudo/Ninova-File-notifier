@@ -3,6 +3,17 @@ from __future__ import annotations
 from pydantic import BaseModel
 
 
+class AnnouncementEntry(BaseModel):
+    class_name: str
+    title: str
+    url: str
+    posted_at: str | None = None
+
+    @property
+    def unique_key(self) -> str:
+        return f"{self.class_name}::{self.url}"
+
+
 class FileEntry(BaseModel):
     class_name: str
     file_name: str
@@ -37,9 +48,13 @@ class Snapshot(BaseModel):
     fetched_at: str
     files: list[FileEntry] = []
     grades: list[GradeEntry] = []
+    announcements: list[AnnouncementEntry] = []
 
     def file_keys(self) -> set[str]:
         return {f.unique_key for f in self.files}
 
     def grade_map(self) -> dict[str, GradeEntry]:
         return {g.unique_key: g for g in self.grades}
+
+    def announcement_keys(self) -> set[str]:
+        return {a.unique_key for a in self.announcements}

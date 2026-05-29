@@ -1,6 +1,18 @@
 from __future__ import annotations
 
-from src.models import FileEntry, GradeChange, Snapshot
+from src.models import AnnouncementEntry, FileEntry, GradeChange, Snapshot
+
+
+def find_new_announcements(previous: Snapshot | None, current: Snapshot) -> list[AnnouncementEntry]:
+    """Return announcements present in current but not in previous.
+
+    On first run (previous is None), treat all as already known to avoid a flood.
+    """
+    if previous is None:
+        return []
+
+    old_keys = previous.announcement_keys()
+    return [a for a in current.announcements if a.unique_key not in old_keys]
 
 
 def find_new_files(previous: Snapshot | None, current: Snapshot) -> list[FileEntry]:
