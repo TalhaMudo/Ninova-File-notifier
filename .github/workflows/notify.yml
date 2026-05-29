@@ -11,6 +11,8 @@ on:
         options:
           - "false"
           - "true"
+  schedule:
+    - cron: "0 * * * *"  # every hour at :00 UTC
 
 permissions:
   actions: write
@@ -54,8 +56,10 @@ jobs:
           BARK_DEVICE_KEY: ${{ secrets.BARK_DEVICE_KEY }}
           BARK_BASE_URL: "https://api.day.app"
           BARK_ICON_URL: ${{ secrets.BARK_ICON_URL }}
-          NOTIFY_ON_FIRST_RUN: "true"
-          NOTIFY_ON_NO_UPDATES: "true"
+          # On scheduled runs: suppress "no updates" noise; only notify when something is actually found.
+          # On manual dispatch: keep both enabled for full feedback.
+          NOTIFY_ON_FIRST_RUN: ${{ github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
+          NOTIFY_ON_NO_UPDATES: ${{ github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
           NINOVA_BASE_URL: "https://ninova.itu.edu.tr"
           STATE_FILE_PATH: "state/latest_snapshot.json"
           HEADLESS: "true"

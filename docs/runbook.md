@@ -20,9 +20,24 @@ cp .env.example .env
 python -m src.main
 ```
 
+## Scheduled hourly runs
+
+The workflow also runs automatically every hour (cron `0 * * * *` UTC).
+
+**Silent-by-default behavior on schedule:**
+
+| Condition               | Manual dispatch | Scheduled run |
+|-------------------------|-----------------|---------------|
+| New file or grade found | Bark notification sent | Bark notification sent |
+| Nothing new found       | "No new update" notification sent | **Silent — no notification** |
+| First run (cold cache)  | "Initialized" notification sent | **Silent** |
+
+This means your phone is only woken up when something actually changed during a scheduled run.
+Manual runs keep their full feedback behavior (useful for confirming the shortcut worked).
+
 ## Running in GitHub Actions
 
-The workflow triggers via `workflow_dispatch`. You can trigger it from:
+The workflow triggers via `workflow_dispatch` or on the hourly schedule. You can trigger it manually from:
 
 - **GitHub UI**: Actions tab → Ninova File Notifier → Run workflow
 - **Apple Shortcut**: See `docs/apple-shortcut-trigger.md`
