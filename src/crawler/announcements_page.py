@@ -153,8 +153,12 @@ async def _extract_announcements_from_page(
 
 
 def _is_announcement_detail_link(href: str) -> bool:
-    """True only for individual announcement URLs (not the section landing page)."""
-    return bool(re.search(r"/Sinif/[^/]+/Duyurular/\d+", href, re.IGNORECASE))
+    """True only for individual announcement URLs (not the section landing page).
+
+    Section page:       /Sinif/{id}/Duyurular        (plural, no trailing number)
+    Individual post:    /Sinif/{id}/Duyuru/{number}  (singular + numeric ID)
+    """
+    return bool(re.search(r"/Sinif/[^/]+/Duyuru/\d+", href, re.IGNORECASE))
 
 
 def _looks_like_date(text: str) -> bool:
