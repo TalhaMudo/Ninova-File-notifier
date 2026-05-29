@@ -8,7 +8,8 @@ Operational guide for the Ninova File Notifier.
 # 1. Clone and install
 git clone https://github.com/YOUR_USERNAME/Ninova-File-notifier.git
 cd Ninova-File-notifier
-pip3 install -r requirements.txt
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
 playwright install chromium
 
 # 2. Configure
@@ -16,36 +17,8 @@ cp .env.example .env
 # Edit .env with your actual credentials
 
 # 3. Run
-python3 -m src.main
+python -m src.main
 ```
-
-## Apple Shortcut — keeping local copy in sync
-
-The project ships a `run.sh` script that the "Ninova Update" shortcut should
-call.  It pulls the latest code from GitHub before running the checker, so the
-shortcut always uses the most recent version automatically.
-
-**In the Shortcuts app, update the "Kabuk Betiği Çalıştır" action to:**
-
-```
-Shell: /bin/zsh
-Script:
-    /Users/talhamuderrisoglu/Documents/GitHub/Ninova-File-notifier/run.sh
-```
-
-Or equivalently, set the script body to a single line:
-
-```zsh
-/Users/talhamuderrisoglu/Documents/GitHub/Ninova-File-notifier/run.sh
-```
-
-What `run.sh` does each time the shortcut fires:
-1. `git pull --ff-only` — fetches and applies the latest commits
-2. `pip3 install -q -r requirements.txt` — installs any new dependencies (no-op when unchanged)
-3. `python3 -m src.main` — runs the notifier
-
-Your `.env` file and `state/` snapshot are git-ignored, so they are never
-touched by the pull.
 
 ## Scheduled hourly runs
 
