@@ -3,6 +3,14 @@ name: Ninova File Notifier
 on:
   workflow_dispatch:
     inputs:
+      silent:
+        description: "Suppress 'no updates' notification (pass true for automated/hourly iPhone triggers)"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
       debug:
         description: "Enable debug mode (saves extra artifacts)"
         required: false
@@ -56,10 +64,10 @@ jobs:
           BARK_DEVICE_KEY: ${{ secrets.BARK_DEVICE_KEY }}
           BARK_BASE_URL: "https://api.day.app"
           BARK_ICON_URL: ${{ secrets.BARK_ICON_URL }}
-          # On scheduled runs: suppress "no updates" noise; only notify when something is actually found.
-          # On manual dispatch: keep both enabled for full feedback.
-          NOTIFY_ON_FIRST_RUN: ${{ github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
-          NOTIFY_ON_NO_UPDATES: ${{ github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
+          # Silent when: scheduled cron run, OR workflow_dispatch with silent=true (iPhone hourly shortcut).
+          # Noisy when: workflow_dispatch without silent=true (Mac manual shortcut).
+          NOTIFY_ON_FIRST_RUN: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.silent != 'true') && 'true' || 'false' }}
+          NOTIFY_ON_NO_UPDATES: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.silent != 'true') && 'true' || 'false' }}
           NINOVA_BASE_URL: "https://ninova.itu.edu.tr"
           STATE_FILE_PATH: "state/latest_snapshot.json"
           HEADLESS: "true"
